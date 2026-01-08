@@ -1,0 +1,11 @@
+﻿using Domain.Common;
+
+namespace Application.DTOs.PurchaseOrders
+{
+    public record GetOrdersFilterDto : PaginationParameters 
+    {
+        public DateTime? DateFrom { get; set; }
+        public DateTime? DateTo { get; set; }
+        public int? SupplierId { get; set; }
+    }
+}

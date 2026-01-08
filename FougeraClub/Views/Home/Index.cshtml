@@ -1,0 +1,270 @@
+﻿@{
+    ViewData["Title"] = "Salary Management";
+    var addPermission = ViewBag.AddPermission ?? false;
+    var allyears = ViewBag.AllYears as List<int>;
+    var AllEmployeesNames = ViewBag.AllEmployeesNames as List<dynamic>; // dynamic since no model
+    var recordCount = ViewBag.Count ?? 0;
+}
+
+<div class="row my-3 d-flex justify-content-between align-items-center flex-wrap">
+    <div class="col-md-6">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0 py-2 flex-nowrap">
+                <li class="breadcrumb-item"><a href="#">Salary Packages</a></li>
+                <li class="breadcrumb-item"><a href="#">Single Salary</a></li>
+            </ol>
+        </nav>
+    </div>
+    <div class="col-md-6 d-flex align-items-center gap-2 flex-wrap justify-content-end">
+        <div class="records-count-box bg-opacity-10 rounded border-opacity-25 h-auto px-2 py-1">
+            <span>Records Count:</span>
+            <span id="countRecords">@recordCount</span>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header border-bottom card-tabs d-flex flex-wrap align-items-start row">
+        <div class="col-md-3">
+            <div class="d-flex align-items-center gap-2">
+                <h4 class="ico-header-title my-1 ms-lg-1 ms-md-1">
+                    <i class="ri-calendar-schedule-fill me-2 text-ico"></i>Single Salary
+                </h4>
+            </div>
+        </div>
+        <div class="col-md-9 d-flex align-items-center gap-1 flex-wrap justify-content-end">
+            @if (addPermission)
+            {
+                <a asp-action="AddEdit" class="btn btn-outline-success btn-sm">
+                    <i class="fa fa-plus me-1"></i> Create New
+                </a>
+            }
+
+            <button type="button" class="btn btn-success btn-sm" onclick="openPrintpayrollReportPage()">
+                <i class="fa fa-print me-1"></i> Payroll Report
+            </button>
+
+            <button type="button" class="btn btn-success btn-sm" onclick="openDiscountsAndBonusesReportPage()">
+                <i class="fa fa-print me-1"></i> Discounts & Bonuses Report
+            </button>
+
+            <a class="btn btn-success btn-sm" onclick="openExcelPage_payrollReport();">
+                <i class="fa-solid fa-file-excel me-2" style="font-size:17px;"></i> Export Payroll Excel
+            </a>
+
+            <a class="btn btn-success btn-sm" onclick="openExcelPage_DiscountsAndBonusesReport();">
+                <i class="fa-solid fa-file-excel me-2" style="font-size:17px;"></i> Export Discounts & Bonuses Excel
+            </a>
+        </div>
+    </div>
+
+    <div class="rounded shadow-sm p-3">
+        <form method="get" class="filterImg rounded p-2">
+            <div class="row">
+                <div class="filter-dropdown col-md-3">
+                    <label class="fw-medium mb-2">Year:</label>
+                    <select id="selectedYear" name="selectedYear" class="form-control">
+                        <option value="" selected>Show All</option>
+                        @if (allyears != null && allyears.Any())
+                        {
+                            foreach (var year in allyears)
+                            {
+                                <option value="@year">@year</option>
+                            }
+                        }
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="fw-medium mb-2">Select Employee:</label>
+                    <select id="selectedEmployee" name="selectedEmployee" class="form-control">
+                        <option value="" disabled selected>Choose Employee</option>
+                     
+                    </select>
+                </div>
+                <div class="filter-dropdown col-md-3">
+                    <label class="fw-medium mb-2">Month:</label>
+                    <select id="selectedMonth" name="selectedMonth" class="form-control">
+                        <option value="" selected>Show All</option>
+                        @for (int m = 1; m <= 12; m++)
+                        {
+                            <option value="@m">@System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(m)</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-3 d-flex flex-column justify-content-end">
+                    <div class="d-flex justify-content-end">
+                        <button type="button" id="btnClearFilters" class="btn-cancel-search btn btn-sm me-2">
+                            <i class="fa-solid fa-xmark me-1"></i> Clear
+                        </button>
+                        <button type="submit" class="btn btn-success btn-sm">
+                            <i class="ri-filter-line me-1"></i> Search
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+</div>
+
+<div class="row mt-3">
+    <div class="col-12">
+        <div class="card">
+            <div class="rounded shadow-sm p-3" id="PartialNewListContainer">
+                <!-- Page Size Selector -->
+                <nav class="d-flex justify-content-end align-items-center gap-2 my-2">
+                    <label class="form-label mb-0" for="pageSizeSelect">عدد السجلات</label>
+
+                    <select id="pageSizeSelect" name="pageSize" class="form-select form-select-sm w-auto" style="width:74px;">
+                        <option value="50" selected>50</option>
+                        <option value="100">100</option>
+                        <option value="150">150</option>
+                    </select>
+                </nav>
+
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover table-striped">
+                        <thead>
+                            <tr>
+                                <th style="min-width: 70px !important;">Name</th>
+                                <th style="min-width: 70px !important;">Job Title</th>
+                                <th style="min-width: 70px !important;">Month / Year</th>
+                                <th style="min-width: 70px !important;">Basic Salary</th>
+                                <th style="min-width: 70px !important;">Allowances</th>
+                                <th style="min-width: 70px !important;">Total Salary</th>
+                                <th style="min-width: 70px !important;">Work Days</th>
+                                <th style="min-width: 70px !important;">Absent Days</th>
+                                <th style="min-width: 70px !important;">Sick Leave Days</th>
+                                <th style="min-width: 70px !important;">Annual Leave Days</th>
+                                <th style="min-width: 70px !important;">Total Deductions</th>
+                                <th style="min-width: 70px !important;">Bonuses & Missions</th>
+                                <th style="min-width: 70px !important;">Net Salary</th>
+                                <th>Control Tools</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+
+
+                            <!-- Example Data Row -->
+                            <tr>
+                                <td data-label="Name" style="cursor:pointer;">
+                                    <span class="text-decoration-underline">John Doe</span>
+                                </td>
+                                <td>Engineer</td>
+                                <td>January / 2025</td>
+                                <td>10,000</td>
+                                <td>2,000</td>
+                                <td>12,000</td>
+                                <td>22</td>
+                                <td>0</td>
+                                <td>1</td>
+                                <td>2</td>
+                                <td>500</td>
+                                <td>300</td>
+                                <td>11,800</td>
+                                <td>
+                                    <a class="btn-control btn-icon btn-sm rounded-circle" href="#">
+                                        <i class="fa-solid fa-pen-to-square"></i>
+                                    </a>
+                                    <button type="button" class="btn-control btn-icon btn-sm rounded-circle">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                <nav class="d-flex justify-content-center align-items-center flex-wrap mt-3">
+                    <ul class="pagination my-1">
+                        <li class="page-item disabled">
+                            <a href="javascript:void(0)" class="page-link">Previous</a>
+                        </li>
+                        <li class="page-item active">
+                            <a href="javascript:void(0)" class="page-link">1</a>
+                        </li>
+                        <li class="page-item">
+                            <a href="javascript:void(0)" class="page-link">2</a>
+                        </li>
+                        <li class="page-item">
+                            <a href="javascript:void(0)" class="page-link">3</a>
+                        </li>
+                        <li class="page-item">
+                            <a href="javascript:void(0)" class="page-link">Next</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Delete Record</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete <strong id="itemName"></strong>?
+            </div>
+            <div class="modal-footer">
+                <form id="deleteForm" asp-action="Delete" method="post">
+                    <input type="hidden" name="id" id="itemId" />
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger">Yes, Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+
+    <script>
+        function openPrintpayrollReportPage() {
+            const y = encodeURIComponent($('#selectedYear').val());
+            const m = encodeURIComponent($('#selectedMonth').val());
+            const e = encodeURIComponent($('#selectedEmployee').val());
+            if (!y || !m) { toastr.error('Please select Year and Month first'); return; }
+            if ($('#NewCountRecords').val() > 3999) { toastr.error('Cannot print more than 3999 records'); return; }
+            window.open(`/Admin/SalaryManagement/PrintpayrollReport?selectedMonth=${m}&selectedYear=${y}&selectedEmployee=${e}`, 'printWindow', 'width=1000,height=800,noopener,noreferrer');
+        }
+
+        function openDiscountsAndBonusesReportPage() {
+            const y = encodeURIComponent($('#selectedYear').val());
+            const m = encodeURIComponent($('#selectedMonth').val());
+            const e = encodeURIComponent($('#selectedEmployee').val());
+            if (!y || !m) { toastr.error('Please select Year and Month first'); return; }
+            if ($('#NewCountRecords').val() > 3999) { toastr.error('Cannot print more than 3999 records'); return; }
+            window.open(`/Admin/SalaryManagement/PrintDiscountsAndBonusesReport?selectedMonth=${m}&selectedYear=${y}&selectedEmployee=${e}`, 'printWindow', 'width=1000,height=800,noopener,noreferrer');
+        }
+
+        function openExcelPage_payrollReport() {
+            const y = encodeURIComponent($('#selectedYear').val());
+            const m = encodeURIComponent($('#selectedMonth').val());
+            const e = encodeURIComponent($('#selectedEmployee').val());
+            window.open(`/Admin/SalaryManagement/createExcelReport_Download_payrollReport?selectedMonth=${m}&selectedYear=${y}&selectedEmployee=${e}`, '_self');
+        }
+
+        function openExcelPage_DiscountsAndBonusesReport() {
+            const y = encodeURIComponent($('#selectedYear').val());
+            const m = encodeURIComponent($('#selectedMonth').val());
+            const e = encodeURIComponent($('#selectedEmployee').val());
+            window.open(`/Admin/SalaryManagement/createExcelReport_Download_DiscountsAndBonusesReport?selectedMonth=${m}&selectedYear=${y}&selectedEmployee=${e}`, '_self');
+        }
+
+        var deleteModal = document.getElementById('deleteModal');
+        deleteModal.addEventListener('show.bs.modal', function (event) {
+            var button = event.relatedTarget;
+            document.getElementById('itemId').value = button.getAttribute('data-id');
+            document.getElementById('itemName').textContent = button.getAttribute('data-name');
+        });
+    </script>
+}

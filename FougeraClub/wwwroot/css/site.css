@@ -1,0 +1,119 @@
+html {
+  font-size: 14px;
+}
+
+.filterImg {
+  padding-bottom: 7px;
+  background-image: url("/assets/images/adminpattern/bg-search.jpg");
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+  border: 1px solid var(--highdmin-border-color);
+}
+
+.filterImg button {
+  line-height: 25px;
+}
+
+.filterImg label {
+  color: var(--primary-dark);
+}
+
+.filterImg input,
+.filterImg select {
+  text-align: right;
+  border: 1px solid #ccc !important;
+}
+
+.records-count-box>span {
+  color: var(--primary-dark);
+  font-weight: 600;
+}
+
+.records-count-box {
+  padding: 5px 8px;
+  background-color: #fff;
+  border: 1px solid var(--primary-dark);
+}
+
+.breadcrumb-item+.breadcrumb-item::before {
+  content: " ";
+  padding: 0 5px;
+}
+
+@media (min-width: 768px) {
+  html {
+    font-size: 16px;
+  }
+}
+
+.btn:focus,
+.btn:active:focus,
+.btn-link.nav-link:focus,
+.form-control:focus,
+.form-check-input:focus {
+  box-shadow: none;
+}
+
+html {
+  position: relative;
+  min-height: 100%;
+}
+
+body {
+  margin-bottom: 60px;
+}
+
+
+
+.form-floating>.form-control-plaintext::placeholder,
+.form-floating>.form-control::placeholder {
+  color: var(--bs-secondary-color);
+  text-align: end;
+}
+
+.form-floating>.form-control-plaintext:focus::placeholder,
+.form-floating>.form-control:focus::placeholder {
+  text-align: start;
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.5em 1em;
+  border-radius: 8px;
+  font-size: 0.9em;
+  border: 1px solid #ccc;
+  direction: rtl;
+}
+
+.badge-expired {
+  background-color: #fde0dc;
+  /* light red/pink */
+  color: #b71c1c;
+  /* dark red */
+  border-color: #f8bbd0;
+}
+
+.badge-warning {
+  background-color: #fff9c4;
+  /* light yellow */
+  color: #795548;
+  /* brownish */
+  border-color: #ffe082;
+}
+
+.SectionPageColor {
+  color: orange;
+}
+
+/* Override SweetAlert2 cancel button color (preferred over modifying vendor files) */
+:root {
+  --swal2-cancel-button-background-color: #A0D977;
+}
+
+/* Extra strong rule to ensure the cancel button uses the desired color */
+.swal2-container button.swal2-cancel,
+.swal2-container .swal2-cancel.swal2-styled {
+  background-color: #A0D977 !important;
+  color: #ffffff !important;
+}

@@ -1,0 +1,135 @@
+﻿<!-- Breadcrumb Navigation -->
+<div class="row my-3 d-flex justify-content-between align-items-center flex-wrap">
+    <div class="col-md-6 mb-2">
+        <div class="d-flex align-items-center">
+            <h4 class="ico-header-title my-1 ms-lg-1 ms-md-1">
+                <span class="fa fa-book me-2 text-ico"></span>
+                Employee Salary Details
+            </h4>
+        </div>
+    </div>
+    <div class="col-md-6 mb-2">
+        <nav class="d-flex align-items-center justify-content-end" aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0 py-2 flex-nowrap">
+                <li class="breadcrumb-item">
+                    <a href="#">Salary Package</a>
+                </li>
+                <li class="breadcrumb-item">
+                    <a href="/Admin/SalaryManagement/Index">Salary List</a>
+                </li>
+                <li class="breadcrumb-item">
+                    <a href="#">Employee Salary Details</a>
+                </li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="card all-borders p-3">
+    <form method="post">
+        <!-- Hidden Fields (Static example) -->
+        <input type="hidden" name="Id" value="0" />
+        <input type="hidden" name="JobTitle" value="Engineer" />
+        <input type="hidden" name="BasicSalary" value="10000" />
+        <input type="hidden" name="WorkDays" value="22" />
+
+        <div class="row">
+
+            <!-- Employee Selection (Static) -->
+            <div class="col-md-12 mb-2">
+                <label class="form-label">Employee</label>
+                <select class="form-select">
+                    <option value="">-- Select Employee --</option>
+                    <option value="1" selected>John Doe</option>
+                    <option value="2">Jane Smith</option>
+                </select>
+            </div>
+
+            <!-- Year & Month Selection -->
+            <div class="col-md-6 mb-2">
+                <label class="form-label">Year</label>
+                <select class="form-select">
+                    <option value="">-- Select Year --</option>
+                    <option value="2025" selected>2025</option>
+                    <option value="2024">2024</option>
+                </select>
+            </div>
+            <div class="col-md-6 mb-2">
+                <label class="form-label">Month</label>
+                <select class="form-select">
+                    <option value="">-- Select Month --</option>
+                    <option value="1" selected>January</option>
+                    <option value="2">February</option>
+                </select>
+            </div>
+
+            <!-- Job Title & Basic Salary -->
+            <div class="col-md-6 mb-2">
+                <label class="form-label">Job Title</label>
+                <input type="text" class="form-control fw-bold bg-light" value="Engineer" readonly />
+            </div>
+            <div class="col-md-6 mb-2">
+                <label class="form-label">Basic Salary</label>
+                <input type="number" class="form-control fw-bold bg-light" value="10000" readonly />
+            </div>
+
+            <!-- Allowances & Total Salary -->
+            <div class="col-md-6 mb-2">
+                <label class="form-label">Allowances</label>
+                <input type="number" class="form-control" value="2000" />
+            </div>
+            <div class="col-md-6 mb-2">
+                <label class="form-label">Total Salary</label>
+                <input type="number" class="form-control fw-bold bg-light" value="12000" readonly />
+            </div>
+
+            <!-- Work & Leave Days -->
+            <div class="col-md-6 mb-2">
+                <label class="form-label">Work Days</label>
+                <input type="number" class="form-control fw-bold bg-light" value="22" readonly />
+            </div>
+            <div class="col-md-6 mb-2">
+                <label class="form-label">Absent Days</label>
+                <input type="number" class="form-control" value="0" />
+            </div>
+            <div class="col-md-6 mb-2">
+                <label class="form-label">Sick Leave Days</label>
+                <input type="number" class="form-control" value="1" />
+            </div>
+            <div class="col-md-6 mb-2">
+                <label class="form-label">Annual Leave Days</label>
+                <input type="number" class="form-control" value="2" />
+            </div>
+
+            <!-- Deductions & Bonuses -->
+            <div class="col-md-6 mb-2">
+                <label class="form-label">Deductions</label>
+                <input type="number" class="form-control" value="500" />
+            </div>
+            <div class="col-md-6 mb-2">
+                <label class="form-label">Total Deductions</label>
+                <input type="number" class="form-control fw-bold bg-light" value="500" readonly />
+            </div>
+            <div class="col-md-6 mb-2">
+                <label class="form-label">Bonuses & Missions</label>
+                <input type="number" class="form-control" value="300" />
+            </div>
+            <div class="col-md-6 mb-2">
+                <label class="form-label fw-bold">Net Salary</label>
+                <input type="number" class="form-control fw-bold bg-light" value="12000" readonly />
+            </div>
+
+            <!-- Buttons -->
+            <div class="col-md-12">
+                <div class="d-flex align-items-center justify-content-end gap-3 mt-3">
+                    <button type="submit" class="btn btn-sm px-3 btn-cancel-search">
+                        <i class="fa-solid fa-floppy-disk me-1"></i> Save
+                    </button>
+                    <a class="btn btn-success btn-sm px-3" href="/Admin/SalaryManagement">
+                        Back <i class="fa-solid fa-arrow-left"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>

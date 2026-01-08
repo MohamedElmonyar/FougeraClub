@@ -1,0 +1,1246 @@
+﻿@functions {
+    // Returns active class for single or multiple actions within a controller
+    public string IsActive(string controller, params string[] actions)
+    {
+        var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
+        var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
+        var currentId = ViewContext.RouteData.Values["id"]?.ToString();
+        var hasQuery = ViewContext.HttpContext.Request.Query.Any();
+
+        var baseClass = "menu-text";
+
+        // Basic validation
+        if (string.IsNullOrEmpty(currentController) || string.IsNullOrEmpty(currentAction))
+            return baseClass;
+
+        // Skip highlight if we are on AddEdit with an ID or query
+        if ((currentAction.Equals("AddEdit", StringComparison.OrdinalIgnoreCase) && (!string.IsNullOrEmpty(currentId) || hasQuery)))
+            return baseClass;
+
+        return currentController.Equals(controller, StringComparison.OrdinalIgnoreCase) &&
+               actions.Any(a => a.Equals(currentAction, StringComparison.OrdinalIgnoreCase))
+            ? $"{baseClass} active-text"
+            : baseClass;
+    }
+    public string IsActiveBG(string controller, params string[] actions)
+    {
+        var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
+        var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
+        var currentId = ViewContext.RouteData.Values["id"]?.ToString();
+        var hasQuery = ViewContext.HttpContext.Request.Query.Any();
+
+        var baseClass = "side-nav-item";
+
+        if (string.IsNullOrEmpty(currentController) || string.IsNullOrEmpty(currentAction))
+            return baseClass;
+
+        // Skip highlight if we are on AddEdit with an ID or query
+        if ((currentAction.Equals("AddEdit", StringComparison.OrdinalIgnoreCase) && (!string.IsNullOrEmpty(currentId) || hasQuery)))
+            return baseClass;
+
+        return currentController.Equals(controller, StringComparison.OrdinalIgnoreCase) &&
+               actions.Any(a => a.Equals(currentAction, StringComparison.OrdinalIgnoreCase))
+            ? $"{baseClass} active-background"
+            : baseClass;
+    }
+
+
+    // Expands collapsible section if current route matches
+    public string IsExpanded(IEnumerable<string> controllers, params string[] actions)
+    {
+        var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
+        var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
+
+        return controllers.Any(c => c.Equals(currentController, StringComparison.OrdinalIgnoreCase)) &&
+        actions.Any(a => a.Equals(currentAction, StringComparison.OrdinalIgnoreCase))
+        ? "show"
+        : "";
+    }
+
+    // Sets aria-expanded true/false based on current route
+    public string IsAriaExpanded(IEnumerable<string> controllers, params string[] actions)
+    {
+        var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
+        var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
+
+        return controllers.Any(c => c.Equals(currentController, StringComparison.OrdinalIgnoreCase)) &&
+        actions.Any(a => a.Equals(currentAction, StringComparison.OrdinalIgnoreCase))
+        ? "show"
+        : "";
+    }
+
+}
+@{
+    ViewData["Title"] = (ViewData["Title"] != null) ? ViewData["Title"] : "Fougera Club Management System";
+}
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>@ViewData["Title"]</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta content="A fully featured admin theme which can be used to build CRM, CMS, etc." name="description" />
+    <meta content="Coderthemes" name="author" />
+    <link href="~/css/site.css" rel="stylesheet" />
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <!-- Font-Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <!-- App icon besid Title in Tab -->
+    <link rel="shortcut icon" href="~/assets/images/favicon.ico">
+    <link href="~/css/index.css" rel="stylesheet" />
+    <!-- Vendor css -->
+    <link href="~/assets/css/vendor.min.css" rel="stylesheet" type="text/css" />
+    <!-- SweetAlert2  https://cdn.jsdelivr.net/npm/sweetalert2@11-->
+    <script src="~/assets/js/sweetalert2@11.js"></script>
+
+    <!-- cdn chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- App css -->
+    @{
+        var lang = Context.Session.GetString("CurrentCulture") ?? "ar";
+    }
+    @if (lang == "ar")
+    {
+        <link href="~/assets/css/app-rtl.min.css" rel="stylesheet" type="text/css" id="app-style" />
+    }
+    else
+    {
+        <link href="~/assets/css/app.min.css" rel="stylesheet" type="text/css" id="app-style" />
+    }
+    <script>
+        window.Resources = {
+            DeleteConfirm: "Are you sure?",
+            Delete: "Delete",
+            no: "No",
+            lang : "@Html.Raw(lang)",
+        };
+    </script>
+    <!-- Your global delete handler -->
+    <script src="~/js/swal-delete.js"></script>
+
+    <link href="~/spinner/style.css" rel="stylesheet" />
+    <script src="~/spinner/spinner.js"></script>
+
+    <!-- Icons css -->
+    <link href="~/assets/css/icons.min.css" rel="stylesheet" type="text/css" />
+
+    <!-- Theme Config Js -->
+    <script src="~/assets/js/config.js"></script>
+</head>
+<body>
+    <nav class="custom-navbar">
+        <!-- Left Section (Toggle + Brand) -->
+        <div class="navbar-left">
+            <button class="nav-toggle" id="sideBtn2">
+                <i class="ri-menu-5-line"></i>
+            </button>
+            <a class="navbar-brand" href="/Admin/Home/Index">
+                <img src="~/ar/assets/images/logo-ar.png" alt="Logo" />
+            </a>
+            <h4 class="navbar-title">Fougera Club</h4>
+        </div>
+
+        <!-- Right Section (Notifications + Login/User) -->
+        <div class="d-flex align-items-center">
+            <!-- Notification bell with dropdown -->
+            <div class="nav-notification position-relative dropdown">
+                <a href="#" id="notifBell" class="position-relative dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" title="Notifications">
+                    <i class="fa-solid fa-bell fa-xl"></i>
+                    <span id="notifBadge" class="badge bg-danger rounded-pill">0</span>
+                                                <style>
+                                                @@keyframes bell-ring {
+                                                    0% { transform: rotate(0); }
+                                                    10% { transform: rotate(-15deg); }
+                                                    20% { transform: rotate(10deg); }
+                                                    30% { transform: rotate(-10deg); }
+                                                    40% { transform: rotate(6deg); }
+                                                    50% { transform: rotate(-4deg); }
+                                                    60% { transform: rotate(2deg); }
+                                                    70% { transform: rotate(-1deg); }
+                                                    80% { transform: rotate(0); }
+                                                    100% { transform: rotate(0); }
+                                                }
+                                                .bell-animated {
+                                                    animation: bell-ring 1s cubic-bezier(.36,.07,.19,.97) both;
+                                                    animation-iteration-count: infinite;
+                                                }
+                                                </style>
+                                <script>
+                                document.addEventListener('DOMContentLoaded', function () {
+                                    var notifBadge = document.getElementById('notifBadge');
+                                    var bellIcon = document.querySelector('#notifBell .fa-bell');
+                                    // Fetch unread count on page load
+                                    fetch('/Admin/Notifications/GetUnreadCount')
+                                        .then(response => response.json())
+                                        .then(data => {
+                                            var count = data.count || 0;
+                                            notifBadge.textContent = count;
+                                            if (bellIcon) {
+                                                if (count > 0) {
+                                                    bellIcon.classList.add('bell-animated');
+                                                } else {
+                                                    bellIcon.classList.remove('bell-animated');
+                                                }
+                                            }
+                                        })
+                                        .catch(() => {
+                                            notifBadge.textContent = '0';
+                                            if (bellIcon) bellIcon.classList.remove('bell-animated');
+                                        });
+                                });
+                                </script>
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end p-2" aria-labelledby="notifBell" style="min-width: 350px; max-height: 400px; overflow-y: auto;">
+                    <!-- Notifications will be injected here -->
+                </ul>
+                <!-- Notification fetch handled in jQuery show.bs.dropdown handler below. Removed duplicate vanilla handler to avoid global loaders. -->
+            </div>
+        </div>
+    </nav>
+
+    <!-- Sidenav Menu Start -->
+    <div class="sidenav-menu">
+        @* add here  *@
+        <!--- Sidenav Menu -->
+        <ul class="side-nav">
+            @* --- Trainers --- *@
+            <li class="side-nav-item @IsActiveBG("Statistics", "Index")">
+                <a href="/Admin/Statistics/Index" class="side-nav-link">
+                    <span class="menu-icon"><i class="fa-solid fa-chart-simple"></i></span>
+                    <span class="fw menu-text @IsActive("Statistics", "Index")">Statistics</span>
+                </a>
+            </li>
+            <li class="side-nav-item">
+                <a data-bs-toggle="collapse" href="#sidebarTrainer"
+                   aria-expanded="@IsAriaExpanded(new[] { "Trainer", "Statistics", "Member", "Course" }, "Index", "SubscribedMembersInCourses", "AddEdit")"
+                   aria-controls="sidebarTrainer"
+                   class="side-nav-link">
+                    <span class="menu-icon"><i class="fa-solid fa-person-chalkboard"></i></span>
+                    <span class="fw menu-text"> Activities Management</span>
+                    <span class="menu-arrow"></span>
+                </a>
+                <div class="collapse @IsAriaExpanded(new[] { "Trainer", "Member", "Course" }, "Index", "SubscribedMembersInCourses", "AddEdit")" id="sidebarTrainer">
+                    <ul class="sub-menu  border-start-0 ">
+                        @* --- Statistics --- *@
+
+
+                      
+                            <li class="side-nav-item @IsActiveBG("Member", "Index")">
+                                <a href="/Admin/Member" class="side-nav-link">
+                                    <span class="menu-icon"><i class="ri-contacts-book-3-fill"></i></span>
+                                    <span class="fw menu-text @IsActive("Member", "Index")">Members</span>
+                                </a>
+                            </li>
+                        
+                        <li class="side-nav-item @IsActiveBG("Course", "SubscribedMembersInCourses")">
+                            <a href="/Admin/Course/SubscribedMembersInCourses" class="side-nav-link">
+                                <span class="menu-icon"><i class="ri-book-marked-fill"></i></span>
+                                <span class="fw menu-text @IsActive("Course", "SubscribedMembersInCourses")">
+                                    Registered In Courses
+                                </span>
+                            </a>
+                        </li>
+
+                       
+                            <li class="side-nav-item @IsActiveBG("Course", "Index")">
+                                <a href="/Admin/Course" class="side-nav-link">
+                                    <span class="menu-icon"><i class="ri-book-2-fill"></i></span>
+
+                                    <span class="fw menu-text @IsActive("Course", "Index")">Courses List</span>
+                                </a>
+                            </li>
+                       
+                            <li class="side-nav-item @IsActiveBG("Course", "AddEdit")">
+                                <a href="/Admin/Course/AddEdit" class="side-nav-link">
+                                    <span class="menu-icon"><i class="ri-add-circle-fill"></i></span>
+                                    <span class="fw menu-text @IsActive("Course", "AddEdit")">Add New Course</span>
+                                </a>
+                            </li>
+                        
+                            <li class="side-nav-item @IsActiveBG("Trainer", "Index")">
+                                <a href="/Admin/Trainer/Index" class="side-nav-link">
+                                    <span class="menu-icon"><i class="ri-group-fill"></i></span>
+                                    <span class="fw menu-text @IsActive("Trainer", "Index")">Trainers</span>
+                                </a>
+                            </li>
+                       
+                            <li class="side-nav-item @IsActiveBG("Trainer", "AddEdit")">
+                                <a href="/Admin/Trainer/AddEdit" class="side-nav-link">
+                                    <span class="menu-icon"><i class="ri-user-add-fill"></i></span>
+                                    <span class="fw menu-text @IsActive("Trainer", "AddEdit")">Add New Trainer</span>
+                                </a>
+                            </li>
+                        
+                    </ul>
+                </div>
+            </li>
+
+          
+                <li class="side-nav-item">
+                    <a data-bs-toggle="collapse" href="#sidebarActivity"
+                       aria-expanded="@IsAriaExpanded(new[] { "Activity" }, "Index", "AddEdit")"
+                       aria-controls="sidebarActivity"
+                       class="side-nav-link">
+                        <span class="menu-icon"><i class="ri-calendar-schedule-fill"></i></span>
+                        <span class="fw menu-text"> Events Management</span>
+                        <span class="menu-arrow"></span>
+                    </a>
+                    <div class="collapse @IsExpanded(new[] { "Activity" }, "Index", "AddEdit")" id="sidebarActivity">
+                        <ul class="sub-menu  border-start-0 ">
+                            <li class="side-nav-item @IsActiveBG("Activity", "Index")">
+                                <a href="/Admin/Activity" class="side-nav-link">
+                                    <span class="menu-icon"><i class="ri-list-check"></i></span>
+
+                                    <span class="fw menu-text @IsActive("Activity", "Index")">Events List</span>
+                                </a>
+                            </li>
+                           
+                                <li class="side-nav-item @IsActiveBG("Activity", "AddEdit")">
+                                    <a href="/Admin/Activity/AddEdit" class="side-nav-link">
+                                        <span class="menu-icon"><i class="ri-add-circle-fill"></i></span>
+
+                                        <span class="fw menu-text @IsActive("Activity", "AddEdit")">Add New Event</span>
+                                    </a>
+                                </li>
+                            
+                        </ul>
+                    </div>
+                </li>
+            
+
+      
+                <li class="side-nav-item">
+                    <a data-bs-toggle="collapse" href="#sidebarExpenseAndReceipt"
+                       aria-expanded="@IsAriaExpanded(new[] { "ExpenseAndReceipt","CashExchangeBond" }, "Expenses", "Receipts", "AddEdit", "ExpensesReport" ,"ExpensesAndReceiptsReport")"
+                       aria-controls="sidebarExpenseAndReceipt"
+                       class="side-nav-link">
+                        <span class="menu-icon"><i class="fa-solid fa-money-bills"></i></span>
+                        <span class="fw menu-text"> Financial Management</span>
+                        <span class="menu-arrow"></span>
+                    </a>
+                    <div class="collapse @IsExpanded(new[] { "ExpenseAndReceipt", "BudgetItem","CashExchangeBond" },"Index" , "Expenses", "Receipts","AddEdit","ExpensesReport","ExpensesAndReceiptsReport")" id="sidebarExpenseAndReceipt">
+                        <ul class="sub-menu  border-start-0 ">
+                            
+                                <li class="side-nav-item @IsActiveBG("BudgetItem", "Index")">
+                                    <a href="/Admin/BudgetItem/Index" class="side-nav-link">
+                                        <span class="menu-icon"><i class="ri-list-check"></i></span>
+                                        <span class="fw menu-text @IsActive("BudgetItem", "Index")">Budget Items</span>
+                                    </a>
+                                </li>
+                         
+                                <li class="side-nav-item @IsActiveBG("ExpenseAndReceipt", "AddEdit")">
+                                    <a href="/Admin/ExpenseAndReceipt/AddEdit" class="side-nav-link">
+                                        <span class="menu-icon"><i class="ri-add-circle-fill"></i></span>
+                                        <span class="fw menu-text @IsActive("ExpenseAndReceipt", "AddEdit")">Add Expense/Receipt</span>
+                                    </a>
+                                </li>
+                          
+                                <li class="side-nav-item @IsActiveBG("ExpenseAndReceipt", "Expenses")">
+                                    <a href="/Admin/ExpenseAndReceipt/Expenses" class="side-nav-link">
+                                        <span class="menu-icon"><i class="ri-list-check"></i></span>
+                                        <span class="fw menu-text @IsActive("ExpenseAndReceipt", "Expenses")">Expenses</span>
+                                    </a>
+                                </li>
+                         
+                                <li class="side-nav-item @IsActiveBG("ExpenseAndReceipt", "Receipts")">
+                                    <a href="/Admin/ExpenseAndReceipt/Receipts" class="side-nav-link">
+                                        <span class="menu-icon"><i class="ri-list-check"></i></span>
+                                        <span class="fw menu-text @IsActive("ExpenseAndReceipt", "Receipts")">Receipts</span>
+                                    </a>
+                                </li>
+                          
+                                <li class="side-nav-item @IsActiveBG("ExpenseAndReceipt", "ExpensesAndReceiptsReport")">
+                                    <a href="/Admin/ExpenseAndReceipt/ExpensesAndReceiptsReport" class="side-nav-link">
+                                        <span class="menu-icon"><i class="fa-solid fa-file"></i></span>
+                                        <span class="fw menu-text @IsActive("ExpenseAndReceipt", "ExpensesAndReceiptsReport")">Receipts And Payments Report</span>
+                                    </a>
+                                </li>
+                            
+
+                                <li class="side-nav-item @IsActiveBG("ExpenseAndReceipt", "ExpensesReport")">
+                                    <a href="/Admin/ExpenseAndReceipt/ExpensesReport" class="side-nav-link">
+                                        <span class="menu-icon"><i class="fa-solid fa-file"></i></span>
+                                        <span class="fw menu-text @IsActive("ExpenseAndReceipt", "ExpensesReport")">Petty Cash Report</span>
+                                    </a>
+                                </li>
+                         
+                                <li class="side-nav-item @IsActiveBG("CashExchangeBond", "Index")">
+                                    <a href="/Admin/CashExchangeBond/Index" class="side-nav-link">
+                                        <span class="menu-icon"><i class="ri-list-check"></i></span>
+                                        <span class="fw menu-text @IsActive("CashExchangeBond", "Index")">Cash Exchange Bonds</span>
+                                    </a>
+                                </li>
+                          
+                                <li class="side-nav-item @IsActiveBG("CashDisbursementVoucher", "Index")">
+                                    <a href="/Admin/CashDisbursementVoucher/Index" class="side-nav-link">
+                                        <span class="menu-icon"><i class="ri-list-check"></i></span>
+                                        <span class="fw menu-text @IsActive("CashDisbursementVoucher", "Index")">Cash Disbursement Vouchers</span>
+                                    </a>
+                                </li>
+                            }
+                        </ul>
+                    </div>
+
+                </li>
+           
+                <li class="side-nav-item">
+                    <a data-bs-toggle="collapse" href="#sidebarSalaryManagement"
+                       aria-expanded="@IsAriaExpanded(new[] { "SalaryManagement" }, "Index", "AddEdit")"
+                       aria-controls="sidebarSalaryManagement"
+                       class="side-nav-link">
+                        <span class="menu-icon"><i class="fa-solid fa-money-check-dollar"></i></span>
+                        <span class="fw menu-text"> Salary Management</span>
+                        <span class="menu-arrow"></span>
+                    </a>
+                    <div class="collapse @IsExpanded(new[] { "SalaryManagement" }, "Index", "AddEdit")" id="sidebarSalaryManagement">
+                        <ul class="sub-menu  border-start-0 ">
+                            <li class="side-nav-item @IsActiveBG("SalaryManagement", "Index")">
+                                <a href="/Admin/SalaryManagement/Index" class="side-nav-link">
+                                    <span class="menu-icon"><i class="ri-list-check"></i></span>
+                                    <span class="fw menu-text @IsActive("SalaryManagement", "Index")">Salary Management List</span>
+                                </a>
+                            </li>
+                          
+                                <li class="side-nav-item @IsActiveBG("SalaryManagement", "AddEdit")">
+                                    <a href="/Admin/SalaryManagement/AddEdit" class="side-nav-link">
+                                        <span class="menu-icon"><i class="ri-add-circle-fill"></i></span>
+
+                                        <span class="fw menu-text @IsActive("SalaryManagement", "AddEdit")">Add Salary Management</span>
+                                    </a>
+                                </li>
+                          
+                                <li class="side-nav-item @IsActiveBG("SalaryManagement", "Absences")">
+                                    <a href="/Admin/SalaryManagement/Absences" class="side-nav-link">
+                                        <span class="menu-icon"><i class="ri-list-check"></i></span>
+
+                                        <span class="fw menu-text @IsActive("SalaryManagement", "Absences")">Absence List</span>
+                                    </a>
+                                </li>
+                            
+                        </ul>
+                    </div>
+                </li>
+         
+                <li class="side-nav-item">
+                    <a data-bs-toggle="collapse" href="#sidebarPurchaseOrder"
+                       aria-expanded="@IsAriaExpanded(new[] { "PurchaseOrder" }, "Index", "AddEdit")"
+                       aria-controls="sidebarPurchaseOrder"
+                       class="side-nav-link">
+                        <span class="menu-icon"><i class="fa-solid fa-cart-shopping"></i></span>
+                        <span class="fw menu-text"> Purchase Order Management</span>
+                        <span class="menu-arrow"></span>
+                    </a>
+                    <div class="collapse @IsExpanded(new[] { "PurchaseOrder" }, "Index", "AddEdit")" id="sidebarPurchaseOrder">
+                        <ul class="sub-menu  border-start-0 ">
+                            <li class="side-nav-item @IsActiveBG("PurchaseOrder", "Index")">
+                                <a href="/Admin/PurchaseOrder/Index" class="side-nav-link">
+                                    <span class="menu-icon"><i class="ri-list-check"></i></span>
+                                    <span class="fw menu-text @IsActive("PurchaseOrder", "Index")">Purchase Order List</span>
+                                </a>
+                            </li>
+                           
+                                <li class="side-nav-item @IsActiveBG("PurchaseOrder", "AddEdit")">
+                                    <a href="/Admin/PurchaseOrder/AddEdit" class="side-nav-link">
+                                        <span class="menu-icon"><i class="ri-add-circle-fill"></i></span>
+                                        <span class="fw menu-text @IsActive("PurchaseOrder", "AddEdit")">Create Purchase Order</span>
+                                    </a>
+                                </li>
+                            
+                        </ul>
+                    </div>
+                </li>
+          
+        
+                    <li class="side-nav-item">
+                        <a data-bs-toggle="collapse" href="#sidebarExternalWorkMission"
+                           aria-expanded="@IsAriaExpanded(new[] { "ExternalWorkMission","EstimatedBudgetForExternalParticipation","CashExchangeBond","ParticipationsInEventReport","AdministrativeReportQuarterlyAnnual" }, "Index", "AddEdit")"
+                           aria-controls="sidebarExternalWorkMission"
+                           class="side-nav-link">
+                            <span class="menu-icon"><i class="fa-solid fa-folder-open"></i></span>
+                            <span class="fw menu-text"> External Work Mission</span>
+                            <span class="menu-arrow"></span>
+                        </a>
+
+                        <div class="collapse @IsExpanded(new[] { "ExternalWorkMission","EstimatedBudgetForExternalParticipation","CashExchangeBond","ParticipationsInEventReport","AdministrativeReportQuarterlyAnnual" }, "Index", "AddEdit","Details")" id="sidebarExternalWorkMission">
+                            <ul class="sub-menu  border-start-0 ">
+                                
+                                    <li class="side-nav-item @IsActiveBG("ExternalWorkMission", "Index", "AddEdit","Details")">
+                                        <a href="/Admin/ExternalWorkMission/Index" class="side-nav-link">
+                                            <span class="menu-icon"><i class="fa-solid fa-briefcase"></i></span>
+                                            <span class="fw menu-text @IsActive("ExternalWorkMission", "Index", "AddEdit","Details")">External Work Missions</span>
+                                        </a>
+                                    </li>
+                                
+                               
+                                    <li class="side-nav-item @IsActiveBG("EstimatedBudgetForExternalParticipation", "Index", "AddEdit","Details")">
+                                        <a href="/Admin/EstimatedBudgetForExternalParticipation/Index" class="side-nav-link">
+                                            <span class="menu-icon"><i class="fa-solid fa-scale-balanced"></i></span>
+                                            <span class="fw menu-text @IsActive("EstimatedBudgetForExternalParticipation", "Index", "AddEdit","Details")" style="font-size:11px;">Estimated Budget For External Participation</span>
+                                        </a>
+                                    </li>
+                                
+                                
+                                    <li class="side-nav-item @IsActiveBG("ParticipationsInEventReport", "Index", "AddEdit","Details")">
+                                        <a href="/Admin/ParticipationsInEventReport/Index" class="side-nav-link">
+                                            <span class="menu-icon"><i class="fa-solid fa-calendar"></i></span>
+                                            <span class="fw menu-text @IsActive("ParticipationsInEventReport", "Index", "AddEdit","Details")">Participations In Event Report</span>
+                                        </a>
+                                    </li>
+                               
+                                    <li class="side-nav-item @IsActiveBG("MonthlyAdministrativeReport", "Index", "AddEdit","Details")">
+                                        <a href="/Admin/MonthlyAdministrativeReport/Index" class="side-nav-link">
+                                            <span class="menu-icon"><i class="fa-solid fa-file"></i></span>
+                                            <span class="fw menu-text @IsActive("MonthlyAdministrativeReport", "Index", "AddEdit","Details")">Monthly Administrative Reports</span>
+                                        </a>
+                                    </li>
+                               
+                                    <li class="side-nav-item @IsActiveBG("AdministrativeReportQuarterlyAnnual", "Index", "Details")">
+                                        <a href="/Admin/AdministrativeReportQuarterlyAnnual/Index" class="side-nav-link">
+                                            <span class="menu-icon"><i class="fa-solid fa-file"></i></span>
+                                            <span class="fw menu-text @IsActive("AdministrativeReportQuarterlyAnnual", "Index", "Details")">Administrative Report Quarterly/Annual</span>
+                                        </a>
+                                    </li>
+                                
+                            </ul>
+                        </div>
+                    </li>
+         
+                <li class="side-nav-item">
+                    <a data-bs-toggle="collapse" href="#sidebarEmployees"
+                       aria-expanded="@IsAriaExpanded(new[] { "Employees" }, "Index", "AddEdit")"
+                       aria-controls="sidebarEmployees"
+                       class="side-nav-link">
+                        <span class="menu-icon"><i class="fa-solid fa-user-tie"></i></span>
+                        <span class="fw menu-text"> Employees Management</span>
+                        <span class="menu-arrow"></span>
+                    </a>
+                    <div class="collapse @IsExpanded(new[] { "Employees" }, "Index", "AddEdit")" id="sidebarEmployees">
+                        <ul class="sub-menu  border-start-0 ">
+                            <li class="side-nav-item @IsActiveBG("Employees", "Index")">
+                                <a href="/Admin/Employees/Index" class="side-nav-link">
+                                    <span class="menu-icon"><i class="ri-list-check"></i></span>
+                                    <span class="fw menu-text @IsActive("Employees", "Index")">Employees List</span>
+                                </a>
+                            </li>
+                            
+                                <li class="side-nav-item @IsActiveBG("Employees", "AddEdit")">
+                                    <a href="/Admin/Employees/AddEdit" class="side-nav-link">
+                                        <span class="menu-icon"><i class="ri-add-circle-fill"></i></span>
+
+                                        <span class="fw menu-text @IsActive("Employees", "AddEdit")">Add New Employee</span>
+                                    </a>
+                                </li>
+                            
+                        </ul>
+                    </div>
+                </li>
+            
+
+
+                <li class="side-nav-item">
+                    <a data-bs-toggle="collapse" href="#sidebarCar"
+                       aria-expanded="@IsAriaExpanded(new[] { "Car" }, "Index", "AddEdit")"
+                       aria-controls="sidebarCar"
+                       class="side-nav-link">
+                        <span class="menu-icon"><i class="fa-solid fa-car"></i></span>
+                        <span class="fw menu-text"> Cars Management</span>
+                        <span class="menu-arrow"></span>
+                    </a>
+                    <div class="collapse @IsExpanded(new[] { "Car" }, "Index", "AddEdit")" id="sidebarCar">
+                        <ul class="sub-menu  border-start-0 ">
+                            <li class="side-nav-item @IsActiveBG("Car", "Index")">
+                                <a href="/Admin/Car/Index" class="side-nav-link">
+                                    <span class="menu-icon"><i class="ri-list-check"></i></span>
+
+                                    <span class="fw menu-text @IsActive("Car", "Index")">Cars List</span>
+                                </a>
+                            </li>
+                            
+                                <li class="side-nav-item @IsActiveBG("CarService", "Index")">
+
+                                    <a href="/Admin/CarService/Index" class="side-nav-link">
+                                        <span class="menu-icon"><i class="ri-tools-fill"></i></span>
+
+                                        <span class="fw menu-text @IsActive("CarService", "Index")">Cars Maintenance</span>
+                                    </a>
+                                </li>
+                            
+                        </ul>
+                    </div>
+                </li>
+           
+                <li class="side-nav-item">
+                    <a data-bs-toggle="collapse" href="#sidebarMaintenanceClub"
+                       aria-expanded="@IsAriaExpanded(new[] { "MaintenanceClub" }, "Index", "AddEdit")"
+                       aria-controls="sidebarMaintenanceClub"
+                       class="side-nav-link">
+                        <span class="menu-icon"><i class="fa-solid fa-hotel"></i></span>
+                        <span class="fw menu-text">  Club Maintenance Management</span>
+                        <span class="menu-arrow"></span>
+                    </a>
+                    <div class="collapse @IsExpanded(new[] { "MaintenanceClub" }, "Index", "AddEdit")" id="sidebarMaintenanceClub">
+                        <ul class="sub-menu  border-start-0 ">
+                            <li class="side-nav-item @IsActiveBG("MaintenanceClub", "Index")">
+                                <a href="/Admin/MaintenanceClub/Index" class="side-nav-link">
+                                    <span class="menu-icon"><i class="ri-list-check"></i></span>
+
+                                    <span class="fw menu-text @IsActive("MaintenanceClub", "Index")">
+                                        Maintenance List
+                                    </span>
+                                </a>
+                            </li>
+                         
+                                <li class="side-nav-item @IsActiveBG("MaintenanceClub", "AddEdit")">
+                                    <a href="/Admin/MaintenanceClub/AddEdit" class="side-nav-link">
+                                        <span class="menu-icon"><i class="ri-add-circle-fill"></i></span>
+
+                                        <span class="fw menu-text @IsActive("MaintenanceClub", "AddEdit")">Add New Maintenance</span>
+                                    </a>
+                                </li>
+                            
+                        </ul>
+                    </div>
+                </li>
+            
+
+          
+                <li class="side-nav-item">
+                    <a data-bs-toggle="collapse" href="#sidebarSupplier"
+                       aria-expanded="@IsAriaExpanded(new[] { "Supplier" }, "Index", "AddEdit")"
+                       aria-controls="sidebarSupplier"
+                       class="side-nav-link">
+                        <span class="menu-icon"><i class="fa-solid fa-user-tie"></i></span>
+                        <span class="fw menu-text"> Suppliers Management</span>
+                        <span class="menu-arrow"></span>
+                    </a>
+                    <div class="collapse @IsExpanded(new[] { "Supplier" }, "Index", "AddEdit")" id="sidebarSupplier">
+                        <ul class="sub-menu  border-start-0 ">
+                            <li class="side-nav-item @IsActiveBG("Supplier", "Index")">
+                                <a href="/Admin/Supplier/Index" class="side-nav-link">
+                                    <span class="menu-icon"><i class="ri-list-check"></i></span>
+
+                                    <span class="fw menu-text @IsActive("Supplier", "Index")">Suppliers List</span>
+                                </a>
+                            </li>
+                           
+                                <li class="side-nav-item @IsActiveBG("Supplier", "AddEdit")">
+                                    <a href="/Admin/Supplier/AddEdit" class="side-nav-link">
+                                        <span class="menu-icon"><i class="ri-add-circle-fill"></i></span>
+
+                                        <span class="fw menu-text @IsActive("Supplier", "AddEdit")">Add New Supplier</span>
+                                    </a>
+                                </li>
+                            
+                        </ul>
+                    </div>
+                </li>
+            
+
+          
+           
+
+
+                <li class="side-nav-item">
+                    <a data-bs-toggle="collapse" href="#sidebarAnnualSchedule"
+                       aria-expanded="@IsAriaExpanded(new[] { "AnnualSchedule" }, "Index", "AddEdit")"
+                       aria-controls="sidebarAnnualSchedule"
+                       class="side-nav-link">
+                        <span class="menu-icon"><i class="fa-solid fa-calculator"></i></span>
+                        <span class="fw menu-text"> Annual Inventory Management</span>
+                        <span class="menu-arrow"></span>
+                    </a>
+                    <div class="collapse @IsExpanded(new[] { "AnnualSchedule" }, "Index", "AddEdit")" id="sidebarAnnualSchedule">
+                        <ul class="sub-menu  border-start-0 ">
+                            <li class="side-nav-item @IsActiveBG("AnnualSchedule", "Index")">
+                                <a href="/Admin/AnnualSchedule/Index" class="side-nav-link">
+                                    <span class="menu-icon"><i class="ri-list-check"></i></span>
+                                    <span class="fw menu-text @IsActive("AnnualSchedule", "Index")">Inventory List</span>
+                                </a>
+                            </li>
+                           
+                                <li class="side-nav-item @IsActiveBG("AnnualSchedule", "AddEdit")">
+                                    <a href="/Admin/AnnualSchedule/AddEdit" class="side-nav-link">
+                                        <span class="menu-icon"><i class="ri-add-circle-fill"></i></span>
+                                        <span class="fw menu-text @IsActive("AnnualSchedule", "AddEdit")">Add New Inventory</span>
+                                    </a>
+                                </li>
+                            
+                        </ul>
+                    </div>
+                </li>
+            
+          
+                <li class="side-nav-item">
+                    <a data-bs-toggle="collapse" href="#sidebarArchivingDocument"
+                       aria-expanded="@IsAriaExpanded(new[] { "ArchivingDocument" }, "Index", "AddEdit")"
+                       aria-controls="sidebarArchivingDocument"
+                       class="side-nav-link">
+                        <span class="menu-icon"><i class="fa-solid fa-folder-open"></i></span>
+                        <span class="fw menu-text"> Archiving Document Management</span>
+                        <span class="menu-arrow"></span>
+                    </a>
+                    <div class="collapse @IsExpanded(new[] { "ArchivingDocument" }, "Index", "AddEdit")" id="sidebarArchivingDocument">
+                        <ul class="sub-menu  border-start-0 ">
+                            <li class="side-nav-item @IsActiveBG("ArchivingDocument", "Index")">
+                                <a href="/Admin/ArchivingDocument/Index" class="side-nav-link">
+                                    <span class="menu-icon"><i class="ri-list-check"></i></span>
+                                    <span class="fw menu-text @IsActive("ArchivingDocument", "Index")">Archiving Document List</span>
+                                </a>
+                            </li>
+                         
+                                <li class="side-nav-item @IsActiveBG("ArchivingDocument", "AddEdit")">
+                                    <a href="/Admin/ArchivingDocument/AddEdit" class="side-nav-link">
+                                        <span class="menu-icon"><i class="ri-add-circle-fill"></i></span>
+
+                                        <span class="fw menu-text @IsActive("ArchivingDocument", "AddEdit")">Add New Archiving Document</span>
+                                    </a>
+                                </li>
+                            }
+                        </ul>
+                    </div>
+                </li>
+       
+                <li class="side-nav-item">
+                    <a data-bs-toggle="collapse" href="#sidebarEngineer"
+                       aria-expanded="@IsAriaExpanded(new[] { "Engineer" }, "Index", "AddEdit")"
+                       aria-controls="sidebarEngineer"
+                       class="side-nav-link">
+                        <span class="menu-icon"><i class="fa-solid fa-user"></i></span>
+                        <span class="fw menu-text">Engineers Association Management</span>
+                        <span class="menu-arrow"></span>
+                    </a>
+                    <div class="collapse @IsExpanded(new[] { "Engineer" }, "Index", "AddEdit")" id="sidebarEngineer">
+                        <ul class="sub-menu  border-start-0 ">
+                            <li class="side-nav-item @IsActiveBG("Engineer", "Index")">
+                                <a href="/Admin/Engineer/Index" class="side-nav-link">
+                                    <span class="menu-icon"><i class="ri-list-check"></i></span>
+                                    <span class="fw menu-text @IsActive("Engineer", "Index")">Engineers List</span>
+                                </a>
+                            </li>
+                          
+                                <li class="side-nav-item @IsActiveBG("Engineer", "AddEdit")">
+                                    <a href="/Admin/Engineer/AddEdit" class="side-nav-link">
+                                        <span class="menu-icon"><i class="ri-add-circle-fill"></i></span>
+                                        <span class="fw menu-text @IsActive("Engineer", "AddEdit")">Add New Engineer</span>
+                                    </a>
+                                </li>
+                            
+                        </ul>
+                    </div>
+                </li>
+        
+                <li class="side-nav-item">
+                    <a data-bs-toggle="collapse" href="#sidebarScientificProjects"
+                       aria-expanded="@IsAriaExpanded(new[] { "ScientificProjects" }, "Index", "Create")"
+                       aria-controls="sidebarScientificProjects"
+                       class="side-nav-link">
+                        <span class="menu-icon"><i class="fa-solid fa-microscope"></i></span>
+                        <span class="fw menu-text"> Scientific Projects Management</span>
+                        <span class="menu-arrow"></span>
+                    </a>
+                    <div class="collapse @IsExpanded(new[] { "ScientificProjects" }, "Index", "AddEdit")" id="sidebarScientificProjects">
+                        <ul class="sub-menu  border-start-0 ">
+                            <li class="side-nav-item @IsActiveBG("ScientificProjects", "Index")">
+                                <a href="/Admin/ScientificProjects/Index" class="side-nav-link">
+                                    <span class="menu-icon"><i class="ri-list-check"></i></span>
+                                    <span class="fw menu-text @IsActive("ScientificProjects", "Index")">Scientific Projects List</span>
+                                </a>
+                            </li>
+                           
+                                <li class="side-nav-item @IsActiveBG("ScientificProjects", "Create")">
+                                    <a href="/Admin/ScientificProjects/Create" class="side-nav-link">
+                                        <span class="menu-icon"><i class="ri-add-circle-fill"></i></span>
+                                        <span class="fw menu-text @IsActive("ScientificProjects", "Create")">Add New Scientific Project</span>
+                                    </a>
+                                </li>
+                            
+                        </ul>
+                    </div>
+
+                </li>
+          
+                <li class="side-nav-item">
+                    <a data-bs-toggle="collapse" href="#sidebarSMS"
+                       aria-expanded="@IsAriaExpanded(new[] { "SMS" }, "Members", "MessagesLogs")"
+                       aria-controls="sidebarSMS"
+                       class="side-nav-link">
+                        <span class="menu-icon"><i class="fa-solid fa-sms"></i></span>
+                        <span class="fw menu-text">SMS Notification Unit</span>
+                        <span class="menu-arrow"></span>
+                    </a>
+                    <div class="collapse @IsExpanded(new[] { "SMS" }, "Members", "MessagesLogs")" id="sidebarSMS">
+                        <ul class="sub-menu  border-start-0 ">
+                          
+                                <li class="side-nav-item @IsActiveBG("SMS", "Members")">
+                                    <a href="/Admin/SMS/Members" class="side-nav-link">
+                                        <span class="menu-icon"><i class="ri-list-check"></i></span>
+                                        <span class="fw menu-text @IsActive("SMS", "Members")">SMS</span>
+                                    </a>
+                                </li>
+                          
+                                <li class="side-nav-item @IsActiveBG("SMS", "MessagesLogs")">
+                                    <a href="/Admin/SMS/MessagesLogs" class="side-nav-link">
+                                        <span class="menu-icon"><i class="ri-add-circle-fill"></i></span>
+                                        <span class="fw menu-text @IsActive("SMS", "MessagesLogs")">Messages</span>
+                                    </a>
+                                </li>
+                            
+                        </ul>
+                    </div>
+                </li>
+           
+                <li class="side-nav-item">
+                    <a data-bs-toggle="collapse" href="#sidebarUsers"
+                       aria-expanded="@IsAriaExpanded(new[] { "Account", "Roles" },  "Index" , "AddEdit" ,"Manage", "ResetPassword")"
+                       aria-controls="sidebarUsers"
+                       class="side-nav-link">
+                        <span class="menu-icon"><i class="fa-solid fa-users"></i></span>
+                        <span class="fw menu-text">Users Management Unit</span>
+                        <span class="menu-arrow"></span>
+                    </a>
+                    <div class="collapse @(IsExpanded(new[] { "Account", "Roles" }, "Index" , "AddEdit" , "Manage","ResetPassword"))" id="sidebarUsers">
+                        <ul class="sub-menu  border-start-0 ">
+                                <li class="side-nav-item @(IsActiveBG("Account", "Index" , "AddEdit","ResetPassword" ))">
+                                    <a href="/Admin/Account/Index" class="side-nav-link">
+                                        <span class="menu-icon"><i class="ri-group-fill"></i></span>
+                                        <span class="fw menu-text @(IsActive("Account", "Index" , "AddEdit","ResetPassword" ))">Users</span>
+                                    </a>
+                                </li>
+                                <li class="side-nav-item @(IsActiveBG("Roles" ,"Index" , "Manage"))">
+                                    <a href="/Admin/Roles/Index" class="side-nav-link">
+                                        <span class="menu-icon"><i class="ri-shield-user-fill"></i></span>
+                                        <span class="fw menu-text @(IsActive("Roles", "Index" , "Manage"))">Groups</span>
+                                    </a>
+                                </li>
+                        </ul>
+                    </div>
+                </li>
+
+         
+                <li class="side-nav-item @IsActiveBG("LogHistory", "Index")">
+                    <a href="/Admin/LogHistory" class="side-nav-link">
+                        <span class="menu-icon"><i class="ri-pages-line"></i></span>
+                        <span class="fw menu-text @IsActive("LogHistory", "Index")">Logs Unite</span>
+                    </a>
+                </li>
+            
+
+        </ul>
+
+    </div>
+
+
+    <!-- ============================================================== -->
+    <!-- Start Page Content here -->
+    <!-- ============================================================== -->
+    <div class="page-content d-flex flex-column min-vh-100">
+
+        <!-- Loading Screen -->
+        <div class="loading-screen" id="loadingScreen">
+            <div class="hyper-loader"></div>
+        </div>
+
+
+
+        <!-- Spinner -->
+        <div id="spinner" aria-hidden="true">
+            <div class="spinner-layout">
+                <div class="sk-folding-cube">
+                    <div class="sk-cube1 sk-cube"></div>
+                    <div class="sk-cube2 sk-cube"></div>
+                    <div class="sk-cube4 sk-cube"></div>
+                    <div class="sk-cube3 sk-cube"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Page Container -->
+        <div id="page-container" class="page-container flex-grow-1">
+            @RenderBody()
+        </div>
+
+
+        <!-- Footer -->
+        <footer class="footer mt-3 border-top bg-white " style="direction:ltr;">
+            <div class="container-fluid">
+                <div class="row align-items-center justify-content-between text-center text-md-start">
+
+                    <!-- Left-aligned copyright -->
+                    <div class="col-md-auto mb-2 mb-md-0">
+                        <small class="text-muted">&copy; 2025 Smart Vision IT Solutions - All rights reserved.</small>
+                    </div>
+
+                    <!-- Right-aligned logo -->
+                    <div class="col-md-auto d-flex justify-content-center justify-content-md-end align-items-center gap-2">
+                        <small class="text-muted">Powered by</small>
+                        <a href="https://esmart-vision.com/" target="_blank" class="text-decoration-none"> <img src="~/ar/assets/images/foter-logo-co.png" alt="logo" class="footer-logo" style="height:28px;"></a>
+                    </div>
+
+                </div>
+            </div>
+        </footer>
+    </div>
+
+
+    <!-- ============================================================== -->
+    <!-- End Page content -->
+    <!-- ============================================================== -->
+    <!-- END wrapper -->
+
+    <div id="loadingScreen2" style="display: none;">
+        <div class="ha-loading-backdrop">
+            <div class="spinner-border " role="status">
+                <span class="visually-hidden">Loading ...</span>
+            </div>
+            @* <div class="mt-2 text-muted fw-semibold">جارٍ التحميل...</div> *@
+            <div class="mt-2 text-muted fw-semibold">Loading ...</div>
+        </div>
+    </div>
+
+    <!-- Vendor js -->
+    <script src="~/assets/js/vendor.min.js"></script>
+
+    <!-- App js -->
+    <script src="~/assets/js/app.js"></script>
+
+    <script src="~/assets/js/sweetalert2@11.js"></script>
+
+    @if (Context.Request.Method == "GET")
+    {
+        <script>
+            const loadingScreen = document.querySelector('.loading-screen');
+            if (loadingScreen) {
+                loadingScreen.style.display = 'block';
+
+                window.addEventListener('load', function () {
+                    setTimeout(function () {
+                        loadingScreen.style.opacity = '0';
+                        setTimeout(function () {
+                            loadingScreen.style.display = 'none';
+                        }, 100);
+                    }, 900);
+                });
+            }
+        </script>
+    }
+    <style>
+        .rotate {
+            transform: rotate(90deg);
+        }
+    </style>
+    <script>
+        $(document).ready(function() {
+                    if ($('.side-nav-item').hasClass('active')) {
+            $('.side-nav-item.active .menu-arrow').addClass('rotate'); // example action
+        }
+
+        });
+
+        const sideBtn = document.getElementById("sideBtn2");
+        let sideState = false;
+
+        sideBtn.addEventListener("click", () => {
+        sideState = !sideState;
+        if (sideState) {
+        document.documentElement.setAttribute("data-sidenav-size", "full");
+        document.documentElement.classList.remove("sidebar-enable");
+        }
+        else {
+        if (window.innerWidth <= 768) {
+        document.documentElement.setAttribute("data-sidenav-size", "full");
+        }
+        else {
+        document.documentElement.setAttribute("data-sidenav-size", "default");
+
+        }
+        document.documentElement.classList.add("sidebar-enable");
+
+        }
+        });
+
+    </script>
+    <!-- Projects Analytics Dashboard App js -->
+    <script src="~/assets/js/pages/dashboard.js"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+
+</body>
+</html>
+<!-- toastr.js   -->
+<link rel="stylesheet" href="~/assets/css/toastr.min.css"/>
+<script src="~/assets/js/jquery.min.js"></script>
+<script src="~/assets/js/toastr.min.js"></script>
+    <script>
+    const sideNav = document.querySelector(".sidenav-menu");
+    const toggleBtn = document.getElementById("sideBtn2");
+    toggleBtn.addEventListener("click", () => {
+      sideNav.classList.toggle("collapsed");
+      document.body.classList.toggle("menu-collapsed");
+    });
+</script>
+@using System.Text.Json
+@using System.Text.Encodings.Web
+@using Microsoft.AspNetCore.Html
+
+@{
+    var toastMessageResource = Context.Session.GetString("ToastMessage");
+    string toastMessage = null;
+
+    
+    var toastType = Context.Session.GetString("ToastType");
+    var toastKey = Context.Session.GetString("ToastKey");
+
+    // Clean up session
+    Context.Session.Remove("ToastMessage");
+    Context.Session.Remove("ToastType");
+    Context.Session.Remove("ToastKey");
+}
+
+<script>
+    // this Script for Reload Tootips Text after Ajax Called in index Pages or another page
+    function initTooltips() {
+        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    }
+</script>
+<script>
+    $(function () {
+        @{
+            // Serialize safely
+            var jsonOptions = new JsonSerializerOptions
+            {
+                Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            };
+
+            var messageJson = Html.Raw(JsonSerializer.Serialize(toastMessage, jsonOptions));
+            var typeJson = Html.Raw(JsonSerializer.Serialize(toastType, jsonOptions));
+            var keyJson = Html.Raw(JsonSerializer.Serialize(toastKey, jsonOptions));
+        }
+
+        var msg = @messageJson;
+        var type = @typeJson;
+        var key = @keyJson;
+         var icon = '';
+        if (msg && msg !== "") {
+            toastr.options = {
+                closeButton: true,
+                progressBar: true,
+                newestOnTop: true,
+                preventDuplicates: true,
+                positionClass: "toast-top-center", // More natural placement
+                showDuration: 300,
+                hideDuration: 500,
+                timeOut: 4000,
+                extendedTimeOut: 2000,
+                showEasing: "swing",
+                hideEasing: "linear",
+                showMethod: "fadeIn",
+                hideMethod: "fadeOut"
+            };
+
+            switch (type) {
+                 case "success":
+                icon = '<i class="fas fa-check-circle"></i> ';
+                toastr.success(msg);
+                break;
+            case "error":
+                icon = '<i class="fas fa-exclamation-circle"></i> ';
+                toastr.error(msg);
+                break;
+            case "info":
+                icon = '<i class="fas fa-info-circle"></i> ';
+                toastr.info(msg);
+                break;
+            case "warning":
+                icon = '<i class="fas fa-exclamation-triangle"></i> ';
+                toastr.warning(msg);
+                break;
+            default:
+                toastr.info(msg);
+                break;
+
+            }
+        }
+    });
+</script>
+
+<script>
+    // Toaster For you can't Print if records > 3999
+    function showToastrCannotPrint() {
+      toastr.options = {
+        "closeButton": true,
+        "progressBar": true,
+        "positionClass": "toast-top-center",
+        "timeOut": "3000"
+      };
+    var cantPrint ='Can\'t print';
+    var useExcel ='Use Excel';
+
+      toastr.error(cantPrint+'\n'+useExcel);
+    }
+</script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl("/hubs/notifications") // hub endpoint
+            .withAutomaticReconnect()       // ✅ auto reconnect if connection drops
+            .build();
+
+           connection.on("ReceiveNotification", function (data) {
+        try {
+            // Update badge count
+            var badge = document.getElementById('notifBadge');
+            if (badge) {
+                var current = parseInt(badge.dataset.count || badge.textContent || '0', 10);
+                if (isNaN(current)) current = 0;
+                current = current + 1;
+                badge.dataset.count = current;
+                badge.textContent = current;
+                badge.style.display = current > 0 ? 'inline-block' : 'none';
+            }
+
+            // Pulse the bell briefly
+            var bell = document.getElementById('notifBell');
+            if (bell) {
+                bell.classList.add('notif-pulse');
+                setTimeout(function () { bell.classList.remove('notif-pulse'); }, 1200);
+            }
+
+            // Show a toast using existing toastr integration
+            var title = (data && data.title) ? data.title : '';
+            var message = (data && data.message) ? data.message : (typeof data === 'string' ? data : JSON.stringify(data));
+            try {
+                toastr.info(message, title);
+            } catch (e) {
+                console.log(title + ': ' + message);
+            }
+        }
+        catch (ex) {
+            console.error('Notification handler error', ex);
+        }
+    });
+
+
+        connection.start()
+            .then(() => console.log("✅ SignalR connected. Waiting for notifications..."))
+            .catch(err => console.error("❌ SignalR connection error:", err));
+    });
+</script>
+
+<style>
+    /* Notification bell pulse animation */
+    @@keyframes notifPulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.12); }
+        100% { transform: scale(1); }
+    }
+    .notif-pulse { animation: notifPulse 0.9s ease-in-out; }
+
+    .nav-notification .badge {
+        background:#af1717 !important;
+        color: #fff !important;
+        transform: translateZ(0);
+        font-size: 12px;
+        padding: 4px 7px;
+        right: -14px;
+        bottom: 10px;
+        position: absolute;
+    }
+</style>
+<script>
+    document.querySelectorAll('input[type="date"]').forEach(input => {
+        input.addEventListener('focus', function () {
+            this.setAttribute("type", "date");
+        });
+        input.addEventListener('blur', function () {
+            if (this.value === "") {
+                this.setAttribute("type", "text");
+            }
+        });
+        input.addEventListener('click', function () {
+            this.showPicker?.();
+        });
+    });
+</script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const toggleBtn = document.querySelector(".nav-toggle");
+        const body = document.body;
+
+        if (toggleBtn) {
+            toggleBtn.addEventListener("click", function () {
+                body.classList.toggle("menu-collapsed");
+                document.querySelector(".sidenav-menu")?.classList.toggle("active");
+                body.classList.toggle("menu-open");
+            });
+        }
+    });
+</script>
+<script>
+
+        $(document).ready(function () {
+        var notifToggle = $('#notifBell');
+        var notifDropdown = notifToggle.closest('.dropdown');
+        var notifMenu = notifDropdown.find('.dropdown-menu');
+        var notifBadge = $('#notifBadge');
+
+        // Listen on the dropdown container - Bootstrap triggers show.bs.dropdown on that element
+        notifDropdown.on('show.bs.dropdown', function () {
+            console.log('notif dropdown show event fired');
+            // show small inline spinner inside the dropdown
+            notifMenu.html('<li class="text-center p-3" id="notifLoading"><div class="spinner-border spinner-border-sm" role="status"><span class="visually-hidden">Loading...</span></div></li>');
+            console.log('fetching notifications...');
+            $.ajax({
+                url: '/Admin/Notifications/GetUnread',
+                method: 'GET',
+                success: function (data) {
+                    notifMenu.empty();
+                    if (data && data.length > 0) {
+                        notifBadge.text(data.length);
+                        data.forEach(function (notif) {
+                            notifMenu.append(
+                                '<li class="dropdown-item">'
+                                + '<div class="fw-bold">' + notif.title + '</div>'
+                                + '<div class="small text-muted">' + notif.message + '</div>'
+                                + '<div class="small text-secondary">' + notif.createdAt + '</div>'
+                                + '</li>'
+                            );
+                        });
+                    } else {
+                        notifBadge.text('0');
+                        notifMenu.append('<li class="dropdown-item text-center text-muted">No unread notifications</li>');
+                    }
+                },
+                error: function () {
+                    notifMenu.html('<li class="dropdown-item text-center text-danger">Error loading notifications</li>');
+                }
+            });
+        });
+        // Clear contents when dropdown is hidden to avoid stale loader showing
+        notifDropdown.on('hide.bs.dropdown', function () {
+            notifMenu.empty();
+        });
+    });
+
+</script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const timeInput = document.getElementById('Time');
+
+        if (timeInput) {
+            timeInput.addEventListener('click', function () {
+                if (this.showPicker) {
+                    this.showPicker();
+                } else {
+                    this.focus();
+                }
+            });
+        }
+    });
+</script>
