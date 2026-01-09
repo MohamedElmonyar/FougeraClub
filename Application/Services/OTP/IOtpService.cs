@@ -6,7 +6,8 @@ namespace Application.Services.OTP
 {
     public interface IOtpService
     {
-        Task<string> GenerateAndSendOtpAsync(int orderId);
-        bool VerifyOtp(int orderId, string code);
+        string GenerateOTP(int orderId);
+        bool ValidateOTP(int orderId, string otp);
+        void ClearOTP(int orderId);
     }
 }

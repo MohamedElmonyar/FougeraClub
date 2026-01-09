@@ -1,0 +1,254 @@
+﻿@model Application.DTOs.PurchaseOrders.PurchaseOrderDto
+@{
+    ViewData["Title"] = Model.Id == 0 ? "إضافة أمر شراء" : "تعديل أمر شراء";
+}
+
+<div class="card-header border-bottom d-flex align-items-start row my-3">
+    <div class="d-flex align-items-center col-md-6 flex-wrap">
+        <h4 class="ico-header-title">
+            <i class="fa-solid fa-cart-shopping me-1 text-ico"></i>
+            @ViewData["Title"]
+        </h4>
+    </div>
+    <div class="col-md-6 d-flex align-items-center justify-content-end gap-1 flex-wrap">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0 py-2">
+                <li class="breadcrumb-item">
+                    <a href="#">وحدة أوامر الشراء</a>
+                </li>
+                <li class="breadcrumb-item"><a asp-action="Index">قائمة أوامر الشراء</a></li>
+                <li class="breadcrumb-item active">
+                    <a href="#">@ViewData["Title"]</a>
+                </li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="card p-3">
+    <div class="container-fluid">
+        <form id="orderForm" asp-action="AddEdit" method="post">
+            <input type="hidden" asp-for="Id" />
+            <input type="hidden" asp-for="PurchaseOrderCode" />
+
+            <div class="row">
+                <div class="col-md-10">
+                    <label class="form-label fw-semibold">رقم أمر الشراء</label>
+                    <input value="@Model.PurchaseOrderCode" disabled readonly class="form-control mb-2" type="text" placeholder="سيتم الإنشاء تلقائياً" />
+                </div>
+
+                <div class="col-md-2">
+                    <div class="d-flex align-items-center gap-3 ms-1 mt-3">
+                        <input asp-for="HasVAT" class="form-check-input" style="transform: scale(1.6); cursor: pointer;" type="checkbox" />
+                        <label class="form-label fw-semibold d-block" style="margin-top:15px;" asp-for="HasVAT">With 5% VAT</label>
+                    </div>
+                </div>
+
+                <div class="col-md-6 mb-2">
+                    <label class="form-label fw-semibold" asp-for="Date">التاريخ</label>
+                    <div class="input-icon-left">
+                        <img src="https://cdn-icons-png.flaticon.com/512/747/747310.png" alt="calendar icon" class="date-icon">
+                        <input asp-for="Date" class="form-control green-border form-control-sm filter-bordered" type="date" />
+                    </div>
+                    <span asp-validation-for="Date" class="text-danger small"></span>
+                </div>
+
+                <div class="col-md-6">
+                    <label asp-for="SupplierId" class="form-label fw-semibold">المورد</label>
+                    <select asp-for="SupplierId" class="form-control mb-2 select2" asp-items="ViewBag.Suppliers">
+                        <option value="">-- اختر المورد --</option>
+                    </select>
+                    <span asp-validation-for="SupplierId" class="text-danger small"></span>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-12 mt-3">
+                    <div class="text-left sec-title">
+                        <div class="lg-title">
+                            <h1>إضافة بنود أمر الشراء</h1>
+                        </div>
+                        <div class="title-sep-left"></div>
+                        <div class="title-sep-sm-left"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">الكمية</label>
+                    <input id="QuantityInput" class="form-control only-integer mb-2" type="number" value="1" min="1" />
+                    <span id="QuantitySpan" class="text-danger small"></span>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">سعر الوحدة</label>
+                    <input id="SinglePriceInput" placeholder="0.00" class="form-control mb-2" type="number" step="0.01" />
+                    <span id="SinglePriceSpan" class="text-danger small"></span>
+                </div>
+                <div class="col-md-12">
+                    <label class="form-label fw-semibold">البيان</label>
+                    <input id="ItemNameInput" class="form-control mb-2" type="text" />
+                    <span id="ItemNameSpan" class="text-danger small"></span>
+                </div>
+
+                <div class="col-md-12 d-flex justify-content-end mt-2 mp-1">
+                    <button type="button" class="btn btn-success px-4" onclick="addRow()">
+                        <i class="fa-solid fa-cart-plus me-2"></i> اضافة
+                    </button>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="text-left sec-title">
+                        <div class="lg-title">
+                            <h1>بنود أمر الشراء</h1>
+                        </div>
+                        <div class="title-sep-left"></div>
+                        <div class="title-sep-sm-left"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover align-middle table-striped">
+                    <thead class="table-light">
+                        <tr>
+                            <th>الكمية</th>
+                            <th>سعر الوحدة</th>
+                            <th>البيان</th>
+                            <th>الإجمالي</th>
+                            <th>أدوات التحكم</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ItemsContainer">
+                        @for (int i = 0; i < Model.Items.Count; i++)
+                        {
+                            <tr class="item-row">
+                                <input type="hidden" name="Items[@i].Id" value="@Model.Items[i].Id" />
+                                <td>
+                                    <input class="form-control" type="number" name="Items[@i].Quantity" value="@Model.Items[i].Quantity" readonly />
+                                </td>
+                                <td>
+                                    <input class="form-control" type="number" name="Items[@i].SinglePrice" value="@Model.Items[i].SinglePrice" readonly />
+                                </td>
+                                <td>
+                                    <input class="form-control" type="text" name="Items[@i].ItemName" value="@Model.Items[i].ItemName" readonly />
+                                </td>
+                                <td>
+                                    <input class="form-control" value="@(Model.Items[i].Quantity * Model.Items[i].SinglePrice)" readonly />
+                                </td>
+                                <td class="text-center">
+                                    <button type="button" class="btn-control btn-icon btn-sm rounded-circle btn-danger" onclick="removeRow(this)">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+
+                <div class="d-flex justify-content-end mt-3">
+                    <button type="submit" class="btn btn-success me-2">
+                        <i class="fa-solid fa-floppy-disk me-1"></i> حفظ
+                    </button>
+                    <a class="btn-cancel-search btn-sm btn" asp-action="Index">
+                        رجوع <i class="fa-solid fa-arrow-left me-1"></i>
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        $(document).ready(function () {
+            // Re-index rows on form submit to ensure correct binding
+            $('form').submit(function() {
+                reindexRows();
+                return true;
+            });
+        });
+
+        function addRow() {
+            // Get values
+            const quantity = $('#QuantityInput').val();
+            const singlePrice = $('#SinglePriceInput').val();
+            const itemName = $('#ItemNameInput').val();
+
+            // Simple Validation
+            let isValid = true;
+            $('#QuantitySpan, #SinglePriceSpan, #ItemNameSpan').text('');
+
+            if (!quantity || quantity <= 0) {
+                $('#QuantitySpan').text('الكمية مطلوبة وأكبر من 0');
+                isValid = false;
+            }
+            if (!singlePrice || singlePrice <= 0) {
+                $('#SinglePriceSpan').text('السعر مطلوب');
+                isValid = false;
+            }
+            if (!itemName) {
+                $('#ItemNameSpan').text('البيان مطلوب');
+                isValid = false;
+            }
+
+            if (!isValid) return;
+
+            // Calculate Index
+            const index = $('#ItemsContainer tr').length;
+            const total = (parseFloat(quantity) * parseFloat(singlePrice)).toFixed(2);
+
+            // Create Row HTML
+            const newRow = `
+                <tr class="item-row">
+                    <td>
+                        <input class="form-control" type="number" name="Items[${index}].Quantity" value="${quantity}" readonly />
+                    </td>
+                    <td>
+                        <input class="form-control" type="number" name="Items[${index}].SinglePrice" value="${singlePrice}" readonly />
+                    </td>
+                    <td>
+                        <input class="form-control" type="text" name="Items[${index}].ItemName" value="${itemName}" readonly />
+                    </td>
+                    <td>
+                        <input class="form-control" value="${total}" readonly />
+                    </td>
+                    <td class="text-center">
+                        <button type="button" class="btn-control btn-icon btn-sm rounded-circle btn-danger" onclick="removeRow(this)">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `;
+
+            $('#ItemsContainer').append(newRow);
+
+            // Clear Inputs
+            $('#QuantityInput').val(1);
+            $('#SinglePriceInput').val('');
+            $('#ItemNameInput').val('');
+        }
+
+        function removeRow(btn) {
+            $(btn).closest('tr').remove();
+            reindexRows();
+        }
+
+        function reindexRows() {
+            $('#ItemsContainer tr').each(function (i, row) {
+                $(row).find('input').each(function () {
+                    let name = $(this).attr('name');
+                    if (name) {
+                        // Replace [number] with [i]
+                        name = name.replace(/\[\d+\]/, `[${i}]`);
+                        $(this).attr('name', name);
+                    }
+                });
+            });
+        }
+    </script>
+}

@@ -1,0 +1,27 @@
+﻿@model Application.DTOs.PurchaseOrders.PurchaseOrderItemDto
+@{
+    var index = ViewData["Index"];
+}
+
+<tr class="item-row">
+    <input name="Items[@index].Id" type="hidden" value="@Model.Id" />
+
+    <td>
+        <input name="Items[@index].ItemName" class="form-control" value="@Model.ItemName" placeholder="Product Name" required />
+        <span class="text-danger small" data-valmsg-for="Items[@index].ItemName"></span>
+    </td>
+    <td>
+        <input name="Items[@index].Quantity" type="number" class="form-control input-qty" value="@Model.Quantity" min="1" required />
+    </td>
+    <td>
+        <input name="Items[@index].SinglePrice" type="number" class="form-control input-price" value="@Model.SinglePrice" step="0.01" min="0" required />
+    </td>
+    <td>
+        <input type="text" class="form-control input-total bg-light" value="@((Model.Quantity * Model.SinglePrice).ToString("0.00"))" readonly tabindex="-1" />
+    </td>
+    <td class="text-center">
+        <button type="button" class="btn btn-sm btn-danger btn-remove-row">
+            <i class="fas fa-times"></i>
+        </button>
+    </td>
+</tr>

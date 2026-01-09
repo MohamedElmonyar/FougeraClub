@@ -1,0 +1,164 @@
+﻿@model Domain.Common.PagedList<Application.DTOs.PurchaseOrders.PurchaseOrderDto>
+@{
+    ViewData["Title"] = "قائمة أوامر الشراء";
+    var filter = ViewBag.Filter as Application.DTOs.PurchaseOrders.GetOrdersFilterDto;
+}
+
+<div class="row my-3 d-flex justify-content-between align-items-center flex-wrap">
+    <div class="col-md-6">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0 py-2 flex-nowrap">
+                <li class="breadcrumb-item">
+                    <a href="#">وحدة أوامر الشراء</a>
+                </li>
+                <li class="breadcrumb-item active">
+                    <a href="#">قائمة أوامر الشراء</a>
+                </li>
+            </ol>
+        </nav>
+    </div>
+    <div class="col-md-6 d-flex align-items-center gap-1 flex-wrap justify-content-end">
+        <div class="records-count-box bg-opacity-10 rounded border-opacity-25 h-auto">
+            <span>عدد السجلات:</span>
+            <span id="recordsCount">@Model.TotalCount</span>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex align-items-start">
+                <div class="d-flex align-items-center col-md-6 flex-wrap">
+                    <h4 class="ico-header-title my-1 ms-lg-1 ms-md-1">
+                        <i class="fa-solid fa-cart-shopping me-2 text-ico"></i>قائمة أوامر الشراء
+                    </h4>
+                </div>
+                <div class="col-md-6 d-flex align-items-center justify-content-end gap-1 flex-wrap">
+                    <a class="btn btn-outline-success btn-sm" href="/PurchaseOrder/AddEdit">
+                        <i class="fa fa-plus me-1"></i> اضافة جديد
+                    </a>
+                </div>
+            </div>
+
+            <div class="rounded shadow-sm p-3">
+                <form method="get" action="/PurchaseOrder/Index" class="filterImg rounded p-2">
+                    <div class="row">
+                        <div class="filter-dropdown col-md-4">
+                            <label class="fw-medium mb-2">من تاريخ:</label>
+                            <input type="date" name="DateFrom" value="@filter?.DateFrom?.ToString("yyyy-MM-dd")" class="form-control form-select-sm" />
+                        </div>
+                        <div class="filter-dropdown col-md-4">
+                            <label class="fw-medium mb-2">الي تاريخ:</label>
+                            <input type="date" name="DateTo" value="@filter?.DateTo?.ToString("yyyy-MM-dd")" class="form-control form-select-sm" />
+                        </div>
+                        <div class="filter-dropdown col-md-4">
+                            <label class="fw-medium mb-2">المورد:</label>
+                            <select class="form-select form-select-sm select2" name="SupplierId" asp-items="ViewBag.Suppliers">
+                                <option value="">كل الموردين</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-end align-items-center p-2 gap-2 mt-2">
+                        <a href="/PurchaseOrder/Index" class="btn-cancel-search btn-sm btn">
+                            <i class="fa-solid fa-xmark me-1"></i> إلغاء
+                        </a>
+                        <button type="submit" class="btn btn-success btn-sm">
+                            <i class="ri-filter-line me-1"></i> بحث
+                        </button>
+                    </div>
+                </form>
+
+                <div class="table-responsive mt-3">
+                    <table class="table table-bordered table-hover table-striped">
+                        <thead class="table-light">
+                            <tr>
+                                <th>رقم الأمر</th>
+                                <th>المورد</th>
+                                <th>التاريخ</th>
+                                <th>الإجمالي</th>
+                                <th>الحالة</th>
+                                <th>إجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model.Items.Any())
+                            {
+                                foreach (var order in Model.Items)
+                                {
+                                    <tr>
+                                        <td class="fw-bold">@order.PurchaseOrderCode</td>
+                                        <td>@order.SupplierName</td>
+                                        <td>@order.Date.ToString("yyyy/MM/dd")</td>
+                                        <td class="text-success fw-bold">@order.TotalAmount.ToString("N2")</td>
+                                        <td>
+                                            @if (order.Status == Domain.Enums.PurchaseOrderStatus.Signed)
+                                            {
+                                                <span class="badge bg-success">معتمد</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-warning text-dark">مسودة</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            <a href="/PurchaseOrder/AddEdit?id=@order.Id" class="btn btn-sm btn-outline-primary" title="تعديل">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+
+                                            <button type="button" class="btn btn-sm btn-outline-danger btn-delete" data-id="@order.Id" title="حذف">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+
+                                            @if (order.Status == Domain.Enums.PurchaseOrderStatus.Draft)
+                                            {
+                                                <button type="button" class="btn btn-sm btn-success btn-sign" data-id="@order.Id" title="اعتماد">
+                                                    <i class="fas fa-file-signature"></i> اعتماد
+                                                </button>
+                                            }
+                                            else
+                                            {
+                                                <a href="/PurchaseOrder/Print?id=@order.Id" target="_blank" class="btn btn-sm btn-dark" title="طباعة">
+                                                    <i class="fas fa-print"></i>
+                                                </a>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="6" class="text-center p-4 text-muted">لا توجد بيانات</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                @if (Model.TotalPages > 1)
+                {
+                    <nav class="mt-3 d-flex justify-content-center">
+                        <ul class="pagination">
+                            <li class="page-item @(Model.HasPrevious ? "" : "disabled")">
+                                <a class="page-link" href="/PurchaseOrder/Index?pageNumber=@(Model.CurrentPage - 1)">السابق</a>
+                            </li>
+                            <li class="page-item active">
+                                <span class="page-link">@Model.CurrentPage</span>
+                            </li>
+                            <li class="page-item @(Model.HasNext ? "" : "disabled")">
+                                <a class="page-link" href="/PurchaseOrder/Index?pageNumber=@(Model.CurrentPage + 1)">التالي</a>
+                            </li>
+                        </ul>
+                    </nav>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+    <script src="~/js/pages/purchase-order-index.js"></script>
+    <script src="~/js/select2-cdn-loader.js"></script>
+}

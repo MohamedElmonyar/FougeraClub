@@ -423,35 +423,36 @@
                     </div>
                 </li>
          
-                <li class="side-nav-item">
-                    <a data-bs-toggle="collapse" href="#sidebarPurchaseOrder"
-                       aria-expanded="@IsAriaExpanded(new[] { "PurchaseOrder" }, "Index", "AddEdit")"
-                       aria-controls="sidebarPurchaseOrder"
-                       class="side-nav-link">
-                        <span class="menu-icon"><i class="fa-solid fa-cart-shopping"></i></span>
-                        <span class="fw menu-text"> Purchase Order Management</span>
-                        <span class="menu-arrow"></span>
-                    </a>
-                    <div class="collapse @IsExpanded(new[] { "PurchaseOrder" }, "Index", "AddEdit")" id="sidebarPurchaseOrder">
-                        <ul class="sub-menu  border-start-0 ">
-                            <li class="side-nav-item @IsActiveBG("PurchaseOrder", "Index")">
-                                <a href="/Admin/PurchaseOrder/Index" class="side-nav-link">
-                                    <span class="menu-icon"><i class="ri-list-check"></i></span>
-                                    <span class="fw menu-text @IsActive("PurchaseOrder", "Index")">Purchase Order List</span>
-                                </a>
-                            </li>
-                           
-                                <li class="side-nav-item @IsActiveBG("PurchaseOrder", "AddEdit")">
-                                    <a href="/Admin/PurchaseOrder/AddEdit" class="side-nav-link">
-                                        <span class="menu-icon"><i class="ri-add-circle-fill"></i></span>
-                                        <span class="fw menu-text @IsActive("PurchaseOrder", "AddEdit")">Create Purchase Order</span>
-                                    </a>
-                                </li>
-                            
-                        </ul>
-                    </div>
-                </li>
-          
+      <li class="side-nav-item">
+    <a data-bs-toggle="collapse" href="#sidebarPurchaseOrder"
+       aria-expanded="@IsAriaExpanded(new[] { "PurchaseOrder" }, "Index", "AddEdit")"
+       aria-controls="sidebarPurchaseOrder"
+       class="side-nav-link">
+        <span class="menu-icon"><i class="fa-solid fa-cart-shopping"></i></span>
+        <span class="fw menu-text"> Purchase Order Management</span>
+        <span class="menu-arrow"></span>
+    </a>
+
+    <div class="collapse @IsExpanded(new[] { "PurchaseOrder" }, "Index", "AddEdit")" id="sidebarPurchaseOrder">
+        <ul class="sub-menu border-start-0">
+            
+            <li class="side-nav-item @IsActiveBG("PurchaseOrder", "Index")">
+                <a href="/PurchaseOrder/Index" class="side-nav-link">
+                    <span class="menu-icon"><i class="ri-list-check"></i></span>
+                    <span class="fw menu-text @IsActive("PurchaseOrder", "Index")">Purchase Order List</span>
+                </a>
+            </li>
+            
+            <li class="side-nav-item @IsActiveBG("PurchaseOrder", "AddEdit")">
+                <a href="/PurchaseOrder/AddEdit" class="side-nav-link">
+                    <span class="menu-icon"><i class="ri-add-circle-fill"></i></span>
+                    <span class="fw menu-text @IsActive("PurchaseOrder", "AddEdit")">Create Purchase Order</span>
+                </a>
+            </li>
+            
+        </ul>
+    </div>
+</li>   
         
                     <li class="side-nav-item">
                         <a data-bs-toggle="collapse" href="#sidebarExternalWorkMission"

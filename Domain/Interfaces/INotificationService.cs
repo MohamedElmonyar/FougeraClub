@@ -1,6 +1,6 @@
 ﻿
 
-namespace Application.Services.Notifications
+namespace Domain.Interfaces
 {
     public interface INotificationService
     {

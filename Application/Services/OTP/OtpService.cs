@@ -1,4 +1,4 @@
-﻿using Application.Services.Notifications;
+﻿using Domain.Interfaces;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 
@@ -20,44 +20,81 @@ namespace Application.Services.OTP
             _logger = logger;
         }
 
-        public async Task<string> GenerateAndSendOtpAsync(int orderId)
+        public string GenerateOTP(int orderId)
         {
             try
             {
-                // 1. Generate 4-digit Code
+                // Generate 4-digit OTP code
                 var otpCode = new Random().Next(1000, 9999).ToString();
 
-                // 2. Save to Memory Cache (Expires in 3 mins)
+                // Store in memory cache with 5 minutes expiration
                 string cacheKey = $"OTP_{orderId}";
-                _cache.Set(cacheKey, otpCode, TimeSpan.FromMinutes(3));
+                _cache.Set(cacheKey, otpCode, TimeSpan.FromMinutes(5));
 
-                // 3. Send via SignalR
-                string message = $"Your verification code for Order #{orderId} is: {otpCode}";
-                await _notificationService.SendNotificationAsync(message);
+                // Send notification via SignalR (async fire-and-forget)
+                Task.Run(async () =>
+                {
+                    try
+                    {
+                        string message = $"Your OTP code for Purchase Order #{orderId} is: {otpCode}";
+                        await _notificationService.SendNotificationAsync(message);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Error sending OTP notification");
+                    }
+                });
 
-                _logger.LogInformation($"OTP Generated for Order {orderId}: {otpCode}");
+                _logger.LogInformation("OTP generated for order {OrderId}: {OTP}", orderId, otpCode);
 
                 return otpCode;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error generating OTP");
+                _logger.LogError(ex, "Error generating OTP for order {OrderId}", orderId);
                 throw;
             }
         }
 
-        public bool VerifyOtp(int orderId, string userCode)
+        public bool ValidateOTP(int orderId, string otp)
+        {
+            try
+            {
+                string cacheKey = $"OTP_{orderId}";
+                
+                if (_cache.TryGetValue(cacheKey, out string? storedOtp))
+                {
+                    if (storedOtp == otp)
+                    {
+                        // OTP is valid - remove it from cache
+                        _cache.Remove(cacheKey);
+                        _logger.LogInformation("OTP validated successfully for order {OrderId}", orderId);
+                        return true;
+                    }
+                    else
+                    {
+                        _logger.LogWarning("Invalid OTP provided for order {OrderId}", orderId);
+                    }
+                }
+                else
+                {
+                    _logger.LogWarning("OTP not found or expired for order {OrderId}", orderId);
+                }
+
+                return false;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error validating OTP for order {OrderId}", orderId);
+                return false;
+            }
+        }
+
+        public void ClearOTP(int orderId)
         {
             string cacheKey = $"OTP_{orderId}";
-            if (_cache.TryGetValue(cacheKey, out string? storedCode))
-            {
-                if (storedCode == userCode)
-                {
-                    _cache.Remove(cacheKey); // Invalidate after use
-                    return true;
-                }
-            }
-            return false;
+            _cache.Remove(cacheKey);
+            _logger.LogInformation("OTP cleared for order {OrderId}", orderId);
         }
     }
 }

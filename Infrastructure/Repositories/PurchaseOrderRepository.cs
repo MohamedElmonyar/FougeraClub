@@ -86,21 +86,10 @@ namespace Infrastructure.Repositories
         {
             _logger.LogInformation("Getting purchase order with items by Id: {Id}", id);
 
-            var order = await _context.Set<PurchaseOrder>()
-                .Include(x => x.Items) // Eager Loading for Details
-                .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+            return await _context.Set<PurchaseOrder>()
+             .Include(order => order.Items)
+             .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
 
-            if (order == null)
-            {
-                _logger.LogWarning("Purchase order with Id {Id} not found", id);
-            }
-            else
-            {
-                _logger.LogInformation("Retrieved purchase order {Id} with {ItemCount} items", id, order.Items?.Count ?? 0);
-            }
-
-            return order;
         }
 
         public async Task AddAsync(PurchaseOrder order, CancellationToken cancellationToken)
